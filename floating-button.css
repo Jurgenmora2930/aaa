@@ -1,0 +1,47 @@
+/* Estilos del botón flotante */
+.floating-btn {
+    position: fixed;
+    bottom: 60px;
+    right: 60px;
+    background-color: #00bbff;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    padding: 15px;
+    font-size: 24px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    z-index: 1000;
+}
+
+.floating-btn:hover {
+    background-color: #009fd9;
+    color: #bfbfbf;
+}
+
+.floating-icons {
+    position: fixed;
+    bottom: 60px;
+    right: 60px;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 999;
+}
+
+.floating-icons button {
+    color: white;
+    border: none;
+    border-radius: 50%;
+    padding: 7px;
+    font-size: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: transform 0.3s, background-color 0.3s;
+    width: 35px;
+    height: 35px;
+}
+
+.floating-icons button:hover {
+    transform: scale(1.3);
+}
