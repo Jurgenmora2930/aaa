@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Wolf FX Studio IA – Multi-Efectos – Imagining Wolf</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --naranja: #FF7A00;
+      --naranja-suave: #FF9B3D;
+      --gris-oscuro: #111827;
+      --gris-medio: #6B7280;
+      --fondo: #F3F4F6;
+      --superficie: #FFFFFF;
+      --bordes: #E5E7EB;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 32px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--fondo);
+      color: var(--gris-oscuro);
+    }
+    h1, h2, h3, h4 { margin: 0; }
+    p { margin: 6px 0; color: var(--gris-medio); }
+    .badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(255, 122, 0, 0.12);
+      color: var(--naranja);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+    .layout {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 900px) {
+      body { padding: 18px; }
+      .layout { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: var(--superficie);
+      border: 1px solid var(--bordes);
+      border-radius: 18px;
+      padding: 18px 20px;
+      box-shadow: 0 16px 32px rgba(17, 24, 39, 0.06);
+      backdrop-filter: blur(4px);
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 22px;
+      flex-wrap: wrap;
+    }
+    .hint {
+      background: rgba(255, 155, 61, 0.12);
+      color: var(--gris-oscuro);
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px dashed var(--naranja-suave);
+      max-width: 360px;
+      font-size: 14px;
+    }
+    label { font-weight: 600; color: var(--gris-oscuro); }
+    input[type="file"] {
+      margin-top: 8px;
+      padding: 10px;
+      border-radius: 12px;
+      background: var(--fondo);
+      border: 1px dashed var(--bordes);
+      width: 100%;
+      color: var(--gris-medio);
+    }
+    select, input[type="range"], input[type="color"], button {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--bordes);
+      background: var(--superficie);
+      font-size: 14px;
+      color: var(--gris-oscuro);
+      transition: all 0.2s ease;
+    }
+    select:focus, input[type="range"]:focus, input[type="color"]:focus { outline: 2px solid var(--naranja-suave); }
+    button {
+      background: var(--naranja);
+      color: white;
+      border: none;
+      text-transform: uppercase;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(255, 122, 0, 0.28);
+    }
+    button:disabled {
+      background: var(--bordes);
+      color: var(--gris-medio);
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(107, 114, 128, 0.14);
+      color: var(--gris-oscuro);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .control-group { margin-bottom: 16px; }
+    .slider-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; }
+    .slider-row input[type="range"] { flex: 1; }
+    details { border: 1px dashed var(--bordes); border-radius: 12px; padding: 10px 12px; background: rgba(255,255,255,0.7); }
+    summary { cursor: pointer; font-weight: 700; color: var(--gris-oscuro); }
+    .viewer-card { position: relative; }
+    .canvas-wrapper {
+      position: relative;
+      background: repeating-conic-gradient(#f8f9fb 0% 25%, #e9ecf3 0% 50%) 50% / 24px 24px;
+      border: 1px solid var(--bordes);
+      border-radius: 16px;
+      min-height: 420px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    canvas { max-width: 100%; max-height: 100%; }
+    .toggle {
+      display: inline-flex;
+      border: 1px solid var(--bordes);
+      border-radius: 999px;
+      overflow: hidden;
+      background: var(--fondo);
+    }
+    .toggle button {
+      flex: 1;
+      padding: 10px 14px;
+      background: transparent;
+      color: var(--gris-oscuro);
+      box-shadow: none;
+      border-radius: 0;
+    }
+    .toggle button.active { background: var(--naranja); color: white; }
+    #progressOverlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.32);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: white;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    #progressOverlay.active { opacity: 1; pointer-events: auto; }
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 4px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .status-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+      font-size: 14px;
+      color: var(--gris-medio);
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: #10B981; display: inline-block; }
+    .log-card { margin-top: 14px; }
+    textarea {
+      width: 100%;
+      min-height: 140px;
+      resize: vertical;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--bordes);
+      background: rgba(17, 24, 39, 0.02);
+      color: var(--gris-oscuro);
+      font-family: "JetBrains Mono", "SFMono-Regular", ui-monospace, monospace;
+      font-size: 12px;
+    }
+    .btn-secondary {
+      background: var(--gris-oscuro);
+      box-shadow: none;
+    }
+    .hint-small { font-size: 12px; color: var(--gris-medio); margin-top: 6px; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .value-pill { min-width: 70px; text-align: center; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <div class="badge">Wolf FX Engine IA</div>
+      <h1>Wolf FX Studio IA – Multi-Efectos</h1>
+      <p>Estudio de efectos avanzados para PNG/SVG con transparencia: Crochet, Laberinto, Mosaico, Vitral IA, Low-Poly, Halftone, Glitter y Bordado. Todo corre 100% en el navegador.</p>
+    </div>
+    <div class="hint">Sube un PNG con fondo transparente, elige el efecto y exporta un PNG transparente listo para impresión.</div>
+  </div>
+
+  <div class="layout">
+    <div class="card">
+      <div class="control-group">
+        <label for="fileInput">Imagen base</label>
+        <p>Recomendado: PNG o SVG con transparencia, hasta ~2000 px en su lado más largo.</p>
+        <input type="file" id="fileInput" accept="image/png,image/svg+xml">
+      </div>
+
+      <div class="control-group">
+        <label for="effectSelect">Selector de efecto</label>
+        <select id="effectSelect">
+          <option value="crochet">WOLF Crochet Studio – Tejido Crochet 3D</option>
+          <option value="maze">WOLF Vector Maze – Laberinto vectorial</option>
+          <option value="mosaic">WOLF Mosaic Tile – Mosaico</option>
+          <option value="vitral">WOLF Vitral Studio – Vidrio emplomado IA</option>
+          <option value="lowpoly">WOLF Low-Poly Studio – Triangulación</option>
+          <option value="halftone">WOLF Halftone Studio – Semitonos PRO</option>
+          <option value="glitter">WOLF Glitter Studio – Diamante / brillo</option>
+          <option value="stitch">WOLF Stitch Studio – Bordado</option>
+        </select>
+        <div class="chips">
+          <span class="pill">DTF / Sublimación</span>
+          <span class="pill">Mockups Web</span>
+          <span class="pill">PNG Transparente</span>
+        </div>
+      </div>
+
+      <div id="controlsContainer"></div>
+
+      <details class="control-group" open>
+        <summary>Opciones avanzadas (resolución & fondo)</summary>
+        <div class="control-group" style="margin-top:10px;">
+          <label>Escala de vista</label>
+          <div class="slider-row">
+            <input type="range" id="scale" min="0.6" max="1.8" step="0.02" value="1">
+            <span class="pill value-pill" id="scaleVal">100%</span>
+          </div>
+        </div>
+        <div class="control-group">
+          <label for="bgColor">Color de fondo (solo vista)</label>
+          <input type="color" id="bgColor" value="#f3f4f6">
+        </div>
+      </details>
+
+      <div class="control-group">
+        <button id="btnExportPng" disabled>PNG transparente</button>
+        <p class="hint-small">Al exportar se re-renderiza el efecto en un canvas limpio con transparencia.</p>
+      </div>
+    </div>
+
+    <div class="card viewer-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div>
+          <h3>Vista comparativa</h3>
+          <p style="margin-top:4px;">Alterna entre original y efecto sobre un solo canvas.</p>
+        </div>
+        <div class="toggle">
+          <button id="btnBefore" class="active">Antes</button>
+          <button id="btnAfter">Después</button>
+        </div>
+      </div>
+
+      <div class="canvas-wrapper" id="canvasWrapper">
+        <canvas id="displayCanvas" width="900" height="900"></canvas>
+        <div id="progressOverlay">
+          <div class="spinner"></div>
+          <span>Procesando efecto...</span>
+        </div>
+      </div>
+
+      <div class="status-row">
+        <div><span class="dot"></span> <span id="statusText">Carga un archivo para comenzar.</span></div>
+        <div id="metaText">Resolución interna: --</div>
+      </div>
+
+      <div class="card log-card" style="margin-top:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+          <div>
+            <h4>Consola de proceso</h4>
+            <p class="hint-small">Aquí verás cada paso: archivo cargado, IA de bordes, efecto aplicado o errores.</p>
+          </div>
+          <button class="btn-secondary" id="btnCopyLog">Copiar log</button>
+        </div>
+        <textarea id="logOutput" readonly></textarea>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const effectSelect = document.getElementById('effectSelect');
+    const displayCanvas = document.getElementById('displayCanvas');
+    const dctx = displayCanvas.getContext('2d');
+    const controlsContainer = document.getElementById('controlsContainer');
+    const progressOverlay = document.getElementById('progressOverlay');
+    const statusText = document.getElementById('statusText');
+    const metaText = document.getElementById('metaText');
+    const logOutput = document.getElementById('logOutput');
+    const btnBefore = document.getElementById('btnBefore');
+    const btnAfter = document.getElementById('btnAfter');
+    const btnExportPng = document.getElementById('btnExportPng');
+    const btnCopyLog = document.getElementById('btnCopyLog');
+    const scaleSlider = document.getElementById('scale');
+    const scaleVal = document.getElementById('scaleVal');
+    const bgColorInput = document.getElementById('bgColor');
+
+    let originalImage = null;
+    let originalData = null;
+    let originalWidth = 0;
+    let originalHeight = 0;
+    let edgeMap = null; let edgeW = 0; let edgeH = 0; let tfEdgeError = false;
+    let currentEffectImage = null;
+    let viewMode = 'before';
+    let processing = false;
+
+    const MAX_SIZE = 1200;
+
+    const effectControls = {
+      crochet: [
+        { id:'crochetSize', label:'Tamaño puntada', min:8, max:40, step:1, value:20, suffix:'px' },
+        { id:'crochetDepth', label:'Relieve', min:0.2, max:1.2, step:0.1, value:0.7, suffix:'' }
+      ],
+      maze: [
+        { id:'mazeCell', label:'Tamaño celda', min:6, max:40, step:1, value:16, suffix:'px' },
+        { id:'mazeThickness', label:'Grosor línea', min:1, max:6, step:1, value:2, suffix:'px' }
+      ],
+      mosaic: [
+        { id:'mosaicSize', label:'Tamaño pieza', min:8, max:40, step:1, value:18, suffix:'px' },
+        { id:'mosaicJitter', label:'Irregularidad', min:0, max:0.9, step:0.05, value:0.25, suffix:'' }
+      ],
+      vitral: [
+        { id:'vitralSize', label:'Tamaño pieza', min:10, max:45, step:1, value:20, suffix:'px' },
+        { id:'vitralGlow', label:'Brillo interno', min:0, max:1.4, step:0.05, value:0.6, suffix:'' }
+      ],
+      lowpoly: [
+        { id:'lowpolySize', label:'Tamaño triángulo', min:15, max:80, step:1, value:32, suffix:'px' },
+        { id:'lowpolyJitter', label:'Randomización', min:0, max:1, step:0.05, value:0.35, suffix:'' }
+      ],
+      halftone: [
+        { id:'halftoneSize', label:'Frecuencia puntos', min:4, max:30, step:1, value:12, suffix:'px' },
+        { id:'halftoneContrast', label:'Contraste', min:0.4, max:1.6, step:0.05, value:1, suffix:'' }
+      ],
+      glitter: [
+        { id:'glitterIntensity', label:'Intensidad', min:0.2, max:1.4, step:0.05, value:0.7, suffix:'' },
+        { id:'glitterDensity', label:'Densidad', min:0.2, max:1.2, step:0.05, value:0.6, suffix:'' }
+      ],
+      stitch: [
+        { id:'stitchLen', label:'Largo de puntada', min:6, max:30, step:1, value:14, suffix:'px' },
+        { id:'stitchDensity', label:'Densidad', min:0.6, max:1.6, step:0.05, value:1, suffix:'' }
+      ]
+    };
+
+    function logLine(msg) {
+      const now = new Date();
+      const stamp = now.toLocaleTimeString('es-MX', { hour12:false });
+      logOutput.value += `[${stamp}] ${msg}\n`;
+      logOutput.scrollTop = logOutput.scrollHeight;
+    }
+
+    function createControl(id, label, min, max, step, value, suffix) {
+      const wrap = document.createElement('div');
+      wrap.className = 'control-group';
+      const lab = document.createElement('label'); lab.textContent = label; wrap.appendChild(lab);
+      const row = document.createElement('div'); row.className = 'slider-row';
+      const input = document.createElement('input');
+      input.type = 'range'; input.id = id; input.min = min; input.max = max; input.step = step; input.value = value;
+      const pill = document.createElement('span'); pill.className = 'pill value-pill'; pill.id = id + 'Val'; pill.textContent = `${value} ${suffix}`.trim();
+      input.addEventListener('input', () => { pill.textContent = `${parseFloat(input.value).toFixed(step<1?2:0)} ${suffix}`.trim(); scheduleEffect(); });
+      row.appendChild(input); row.appendChild(pill); wrap.appendChild(row); return wrap;
+    }
+
+    function renderControls(effect) {
+      controlsContainer.innerHTML = '';
+      const controls = effectControls[effect];
+      controls.forEach(c => controlsContainer.appendChild(createControl(c.id, c.label, c.min, c.max, c.step, c.value, c.suffix)));
+    }
+
+    function setViewMode(mode) {
+      viewMode = mode;
+      btnBefore.classList.toggle('active', mode === 'before');
+      btnAfter.classList.toggle('active', mode === 'after');
+      updateView();
+    }
+
+    function showProgress(show) {
+      progressOverlay.classList.toggle('active', show);
+    }
+
+    function loadOriginalToInternalCanvas(img) {
+      const tmp = document.createElement('canvas');
+      const ctx = tmp.getContext('2d');
+      const scale = Math.min(1, MAX_SIZE / Math.max(img.width, img.height));
+      tmp.width = Math.round(img.width * scale);
+      tmp.height = Math.round(img.height * scale);
+      ctx.clearRect(0,0,tmp.width,tmp.height);
+      ctx.drawImage(img, 0,0, tmp.width, tmp.height);
+      originalData = ctx.getImageData(0,0,tmp.width,tmp.height);
+      originalWidth = tmp.width; originalHeight = tmp.height;
+      metaText.textContent = `Resolución interna: ${tmp.width}×${tmp.height} px`;
+      logLine(`Imagen interna preparada: ${tmp.width}×${tmp.height} px.`);
+    }
+
+    async function computeEdgeMapIfPossible() {
+      if (!originalData) return;
+      if (typeof tf === 'undefined') { tfEdgeError = true; logLine('ADVERTENCIA: TensorFlow.js no cargado; vitral IA funcionará en modo básico.'); return; }
+      try {
+        const { data, width, height } = originalData;
+        const gray = new Float32Array(width*height);
+        for (let i=0;i<width*height;i++) {
+          const r = data[i*4], g = data[i*4+1], b = data[i*4+2];
+          gray[i] = (0.299*r + 0.587*g + 0.114*b)/255;
+        }
+        const t = tf.tensor4d(gray, [1, height, width, 1]);
+        const sob = tf.image.sobelEdges(t);
+        const mag = tf.tidy(() => {
+          const sq = tf.mul(sob, sob);
+          const sum = tf.add(tf.slice(sq, [0,0,0,0], [1,height,width,1]), tf.slice(sq, [0,0,0,1], [1,height,width,1]));
+          const m = tf.sqrt(sum);
+          const norm = tf.div(m, tf.max(m).add(1e-6));
+          return norm;
+        });
+        const arr = await mag.data();
+        edgeMap = Array.from(arr);
+        edgeW = width; edgeH = height;
+        logLine(`IA: mapa de bordes generado (${width}×${height}).`);
+        t.dispose(); sob.dispose(); mag.dispose();
+      } catch (err) {
+        console.error(err);
+        tfEdgeError = true;
+        logLine('ADVERTENCIA: error al generar mapa de bordes; vitral IA usará modo básico.');
+      }
+    }
+
+    function drawImageCentered(img, targetCtx, bgColor) {
+      const { width, height } = img;
+      targetCtx.save();
+      if (bgColor) {
+        targetCtx.fillStyle = bgColor; targetCtx.fillRect(0,0,targetCtx.canvas.width,targetCtx.canvas.height);
+      } else {
+        targetCtx.clearRect(0,0,targetCtx.canvas.width,targetCtx.canvas.height);
+      }
+      const scale = Math.min(targetCtx.canvas.width/width, targetCtx.canvas.height/height) * parseFloat(scaleSlider.value);
+      const dw = width * scale; const dh = height * scale;
+      const dx = (targetCtx.canvas.width - dw)/2; const dy = (targetCtx.canvas.height - dh)/2;
+      targetCtx.imageSmoothingQuality = 'high';
+      targetCtx.drawImage(img, dx, dy, dw, dh);
+      targetCtx.restore();
+    }
+
+    function updateView() {
+      if (!originalImage) { dctx.clearRect(0,0,displayCanvas.width, displayCanvas.height); dctx.fillStyle = bgColorInput.value; dctx.fillRect(0,0,displayCanvas.width, displayCanvas.height); return; }
+      const viewImg = viewMode === 'before' ? originalImage : (currentEffectImage || originalImage);
+      drawImageCentered(viewImg, dctx, bgColorInput.value);
+    }
+
+    function getSliderVal(id) { const el = document.getElementById(id); return el ? parseFloat(el.value) : 0; }
+
+    async function applyCurrentEffect(targetCtx=dctx, forExport=false) {
+      if (!originalData) return;
+      if (processing) return;
+      processing = true; showProgress(true);
+      statusText.textContent = 'Procesando efecto...';
+      const effect = effectSelect.value;
+      const canvas = document.createElement('canvas');
+      canvas.width = originalWidth; canvas.height = originalHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.putImageData(originalData, 0, 0);
+      try {
+        switch(effect) {
+          case 'crochet': renderCrochet(ctx); break;
+          case 'maze': renderMaze(ctx); break;
+          case 'mosaic': renderMosaic(ctx); break;
+          case 'vitral': await renderVitral(ctx); break;
+          case 'lowpoly': renderLowpoly(ctx); break;
+          case 'halftone': renderHalftone(ctx); break;
+          case 'glitter': renderGlitter(ctx); break;
+          case 'stitch': renderStitch(ctx); break;
+        }
+        currentEffectImage = new Image();
+        currentEffectImage.src = canvas.toDataURL('image/png');
+        await new Promise(res => currentEffectImage.onload = res);
+        if (!forExport) {
+          statusText.textContent = `Efecto listo: ${effectSelect.options[effectSelect.selectedIndex].textContent}.`;
+          btnExportPng.disabled = false;
+          if (viewMode === 'after') updateView();
+        }
+        logLine(`Efecto completado: ${effect}.`);
+      } catch(err) {
+        console.error(err);
+        logLine('ERROR: Falló el render del efecto: ' + err.message);
+        alert('Ocurrió un error al aplicar el efecto. Revisa la consola interna.');
+      } finally {
+        processing = false; showProgress(false);
+      }
+      return canvas;
+    }
+
+    function renderCrochet(ctx) {
+      const size = getSliderVal('crochetSize');
+      const depth = getSliderVal('crochetDepth');
+      const step = size;
+      const imgData = ctx.getImageData(0,0,ctx.canvas.width, ctx.canvas.height);
+      ctx.clearRect(0,0,ctx.canvas.width, ctx.canvas.height);
+      for (let y=0; y<imgData.height; y+=step) {
+        for (let x=0; x<imgData.width; x+=step) {
+          const idx = ((y+step/2|0)*imgData.width + (x+step/2|0))*4;
+          const a = imgData.data[idx+3];
+          if (a < 20) continue;
+          const r = imgData.data[idx], g = imgData.data[idx+1], b = imgData.data[idx+2];
+          const cx = x + step/2; const cy = y + step/2;
+          const rad = step*0.45;
+          ctx.save();
+          const grad = ctx.createRadialGradient(cx - rad*0.3, cy - rad*0.3, rad*0.2, cx, cy, rad);
+          grad.addColorStop(0, `rgba(${r+40},${g+40},${b+40},${a/255})`);
+          grad.addColorStop(1, `rgba(${r*0.6},${g*0.6},${b*0.6},${a/255})`);
+          ctx.fillStyle = grad;
+          ctx.shadowColor = `rgba(0,0,0,0.25)`;
+          ctx.shadowBlur = depth*10;
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, rad, rad*0.85, 0, 0, Math.PI*2);
+          ctx.fill();
+          ctx.restore();
+          ctx.strokeStyle = `rgba(255,255,255,${0.4*depth})`;
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.arc(cx - rad*0.2, cy - rad*0.2, rad*0.35, Math.PI*0.6, Math.PI*1.8);
+          ctx.stroke();
+        }
+      }
+    }
+
+    function renderMaze(ctx) {
+      const cell = getSliderVal('mazeCell');
+      const thick = getSliderVal('mazeThickness');
+      const img = ctx.getImageData(0,0,ctx.canvas.width, ctx.canvas.height);
+      ctx.clearRect(0,0,ctx.canvas.width, ctx.canvas.height);
+      ctx.lineWidth = thick;
+      ctx.strokeStyle = `rgba(0,0,0,0.8)`;
+      for (let y=0; y<img.height; y+=cell) {
+        const horizontal = (y/cell)%2===0;
+        for (let x=0; x<img.width; x+=cell) {
+          const idx = ((y+cell/2|0)*img.width + (x+cell/2|0))*4;
+          if (img.data[idx+3] < 10) continue;
+          ctx.beginPath();
+          if (horizontal) {
+            ctx.moveTo(x, y+cell/2);
+            ctx.lineTo(Math.min(x+cell, img.width), y+cell/2);
+          } else {
+            ctx.moveTo(x+cell/2, y);
+            ctx.lineTo(x+cell/2, Math.min(y+cell, img.height));
+          }
+          ctx.stroke();
+        }
+      }
+    }
+
+    function renderMosaic(ctx) {
+      const size = getSliderVal('mosaicSize');
+      const jitter = getSliderVal('mosaicJitter');
+      const img = ctx.getImageData(0,0,ctx.canvas.width, ctx.canvas.height);
+      ctx.clearRect(0,0,ctx.canvas.width, ctx.canvas.height);
+      for (let y=0; y<img.height; y+=size) {
+        for (let x=0; x<img.width; x+=size) {
+          const cx = x + size/2; const cy = y + size/2;
+          const idx = (Math.min(img.height-1, cy|0)*img.width + Math.min(img.width-1, cx|0))*4;
+          const a = img.data[idx+3];
+          if (a < 8) continue;
+          const baseEdge = edgeMap? edgeMap[(cy|0)*edgeW + (cx|0)] : 0;
+          const jitterAmt = jitter*(1 - baseEdge*0.8);
+          const pts = [];
+          for (let i=0;i<4;i++) {
+            const ang = Math.PI/2*i + Math.PI/4;
+            const dist = size*0.6 + (Math.random()-0.5)*size*jitterAmt;
+            pts.push({
+              x: cx + Math.cos(ang)*dist,
+              y: cy + Math.sin(ang)*dist
+            });
+          }
+          ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y); pts.slice(1).forEach(p=>ctx.lineTo(p.x,p.y)); ctx.closePath();
+          ctx.fillStyle = `rgba(${img.data[idx]},${img.data[idx+1]},${img.data[idx+2]},${a/255})`;
+          ctx.fill();
+          ctx.strokeStyle = `rgba(40,40,40,${0.4 + baseEdge*0.6})`;
+          ctx.lineWidth = 1.4 + baseEdge*2;
+          ctx.stroke();
+        }
+      }
+    }
+
+    async function renderVitral(ctx) {
+      if (!edgeMap && !tfEdgeError) { await computeEdgeMapIfPossible(); }
+      const size = getSliderVal('vitralSize');
+      const glow = getSliderVal('vitralGlow');
+      const img = ctx.getImageData(0,0,ctx.canvas.width, ctx.canvas.height);
+      ctx.clearRect(0,0,ctx.canvas.width, ctx.canvas.height);
+      for (let y=0; y<img.height; y+=size) {
+        for (let x=0; x<img.width; x+=size) {
+          const cx = x + size/2; const cy = y + size/2;
+          const idx = (Math.min(img.height-1, cy|0)*img.width + Math.min(img.width-1, cx|0))*4;
+          const a = img.data[idx+3]; if (a < 8) continue;
+          const baseEdge = edgeMap? edgeMap[(cy|0)*edgeW + (cx|0)] : 0;
+          const jitterAmt = 0.35 - baseEdge*0.2;
+          const pts = [];
+          const sides = 5;
+          for (let i=0;i<sides;i++) {
+            const ang = (Math.PI*2/sides)*i + Math.random()*0.2;
+            const dist = size*0.55 + (Math.random()-0.5)*size*jitterAmt;
+            pts.push({ x: cx + Math.cos(ang)*dist, y: cy + Math.sin(ang)*dist });
+          }
+          ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y); pts.slice(1).forEach(p=>ctx.lineTo(p.x,p.y)); ctx.closePath();
+          ctx.fillStyle = `rgba(${img.data[idx]},${img.data[idx+1]},${img.data[idx+2]},${a/255})`;
+          ctx.fill();
+          // highlight
+          const gx = cx - size*0.15, gy = cy - size*0.15;
+          const grad = ctx.createRadialGradient(gx, gy, 2, cx, cy, size*0.7);
+          grad.addColorStop(0, `rgba(255,255,255,${0.5*glow})`);
+          grad.addColorStop(1, 'rgba(255,255,255,0)');
+          ctx.fillStyle = grad; ctx.fill();
+          // lead
+          ctx.strokeStyle = `rgba(30,30,30,${0.5 + baseEdge*0.5})`;
+          ctx.lineWidth = 2.4 + baseEdge*2.5;
+          ctx.stroke();
+        }
+      }
+    }
+
+    function renderLowpoly(ctx) {
+      const size = getSliderVal('lowpolySize');
+      const jitter = getSliderVal('lowpolyJitter');
+      const img = ctx.getImageData(0,0,ctx.canvas.width, ctx.canvas.height);
+      ctx.clearRect(0,0,ctx.canvas.width, ctx.canvas.height);
+      for (let y=0; y<img.height; y+=size) {
+        for (let x=0; x<img.width; x+=size) {
+          const jx = x + (Math.random()-0.5)*size*jitter;
+          const jy = y + (Math.random()-0.5)*size*jitter;
+          const jx2 = x + size + (Math.random()-0.5)*size*jitter;
+          const jy2 = y + size + (Math.random()-0.5)*size*jitter;
+          const tri1 = [ {x:jx,y:jy}, {x:jx2,y:jy}, {x:jx,y:jy2} ];
+          const tri2 = [ {x:jx2,y:jy}, {x:jx2,y:jy2}, {x:jx,y:jy2} ];
+          drawTriangle(tri1, img, ctx);
+          drawTriangle(tri2, img, ctx);
+        }
+      }
+      function drawTriangle(tri, img, ctx) {
+        const minX = Math.max(0, Math.min(tri[0].x, tri[1].x, tri[2].x));
+        const minY = Math.max(0, Math.min(tri[0].y, tri[1].y, tri[2].y));
+        const px = (minY|0)*img.width + (minX|0);
+        const idx = px*4;
+        const r = img.data[idx]||0, g=img.data[idx+1]||0, b=img.data[idx+2]||0, a=img.data[idx+3]||0;
+        if (a<8) return;
+        ctx.beginPath(); ctx.moveTo(tri[0].x, tri[0].y); ctx.lineTo(tri[1].x, tri[1].y); ctx.lineTo(tri[2].x, tri[2].y); ctx.closePath();
+        ctx.fillStyle = `rgba(${r},${g},${b},${a/255})`; ctx.fill();
+        ctx.strokeStyle = 'rgba(0,0,0,0.05)'; ctx.lineWidth=0.5; ctx.stroke();
+      }
+    }
+
+    function renderHalftone(ctx) {
+      const size = getSliderVal('halftoneSize');
+      const contrast = getSliderVal('halftoneContrast');
+      const img = ctx.getImageData(0,0,ctx.canvas.width, ctx.canvas.height);
+      ctx.clearRect(0,0,ctx.canvas.width, ctx.canvas.height);
+      for (let y=0; y<img.height; y+=size) {
+        for (let x=0; x<img.width; x+=size) {
+          const idx = ((y+size/2|0)*img.width + (x+size/2|0))*4;
+          const a = img.data[idx+3]; if (a<10) continue;
+          const lum = (0.299*img.data[idx] + 0.587*img.data[idx+1] + 0.114*img.data[idx+2])/255;
+          const rad = (1 - Math.pow(lum, contrast)) * (size/2);
+          ctx.beginPath(); ctx.arc(x+size/2, y+size/2, rad, 0, Math.PI*2);
+          ctx.fillStyle = `rgba(0,0,0,${a/255})`; ctx.fill();
+        }
+      }
+    }
+
+    function renderGlitter(ctx) {
+      const intensity = getSliderVal('glitterIntensity');
+      const density = getSliderVal('glitterDensity');
+      ctx.globalCompositeOperation = 'soft-light';
+      ctx.fillStyle = `rgba(255,255,255,${0.2*intensity})`;
+      ctx.fillRect(0,0,ctx.canvas.width, ctx.canvas.height);
+      ctx.globalCompositeOperation = 'source-over';
+      const img = ctx.getImageData(0,0,ctx.canvas.width, ctx.canvas.height);
+      const stars = Math.floor((ctx.canvas.width*ctx.canvas.height)/4000 * density);
+      for (let i=0;i<stars;i++) {
+        const x = Math.random()*ctx.canvas.width;
+        const y = Math.random()*ctx.canvas.height;
+        const idx = ((y|0)*img.width + (x|0))*4;
+        if (img.data[idx+3]<30 || (img.data[idx]+img.data[idx+1]+img.data[idx+2])<200) continue;
+        const r = 1 + Math.random()*2*intensity;
+        ctx.save();
+        ctx.translate(x,y);
+        ctx.rotate(Math.random()*Math.PI);
+        ctx.strokeStyle = `rgba(255,255,255,${0.5*intensity})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(-r,0); ctx.lineTo(r,0); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0,-r); ctx.lineTo(0,r); ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    function renderStitch(ctx) {
+      const len = getSliderVal('stitchLen');
+      const density = getSliderVal('stitchDensity');
+      const img = ctx.getImageData(0,0,ctx.canvas.width, ctx.canvas.height);
+      ctx.clearRect(0,0,ctx.canvas.width, ctx.canvas.height);
+      const step = len / density;
+      ctx.lineCap = 'round';
+      for (let y=0; y<img.height; y+=step) {
+        for (let x=0; x<img.width; x+=step) {
+          const idx = ((y|0)*img.width + (x|0))*4;
+          const a = img.data[idx+3]; if (a<12) continue;
+          const r = img.data[idx], g=img.data[idx+1], b=img.data[idx+2];
+          ctx.strokeStyle = `rgba(${r*0.6},${g*0.6},${b*0.6},${a/255})`;
+          ctx.lineWidth = 2.4;
+          ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x+len*0.8, y+len*0.6); ctx.stroke();
+          ctx.strokeStyle = `rgba(${Math.min(255,r+60)},${Math.min(255,g+60)},${Math.min(255,b+60)},${a/255})`;
+          ctx.lineWidth = 1.2;
+          ctx.beginPath(); ctx.moveTo(x+1, y+1); ctx.lineTo(x+len*0.8+1, y+len*0.6+1); ctx.stroke();
+        }
+      }
+    }
+
+    async function renderGlitterBase() {}
+
+    function onFileChange(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (!['image/png','image/svg+xml'].includes(file.type)) { alert('Solo se permiten archivos PNG o SVG.'); return; }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = async () => {
+          originalImage = img;
+          loadOriginalToInternalCanvas(img);
+          edgeMap = null; tfEdgeError = false;
+          viewMode = 'before'; setViewMode('before');
+          logLine(`Archivo cargado OK: ${file.name} (${img.width}×${img.height} px).`);
+          await applyCurrentEffect();
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function scheduleEffect() {
+      if (!originalData) return;
+      applyCurrentEffect();
+      if (viewMode === 'before') setViewMode('after');
+    }
+
+    btnBefore.addEventListener('click', ()=>setViewMode('before'));
+    btnAfter.addEventListener('click', ()=>setViewMode('after'));
+    fileInput.addEventListener('change', onFileChange);
+    effectSelect.addEventListener('change', scheduleEffect);
+    scaleSlider.addEventListener('input', () => { scaleVal.textContent = `${Math.round(parseFloat(scaleSlider.value)*100)}%`; updateView(); });
+    bgColorInput.addEventListener('input', updateView);
+
+    btnExportPng.addEventListener('click', async () => {
+      if (!originalData) return;
+      const exportCanvas = await applyCurrentEffect(null, true);
+      if (!exportCanvas) return;
+      const url = exportCanvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      const effect = effectSelect.value;
+      a.download = `wolf-fx-${effect}-ia.png`;
+      a.href = url; a.click();
+      logLine('PNG exportado correctamente.');
+    });
+
+    btnCopyLog.addEventListener('click', () => {
+      const text = logOutput.value;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(()=>logLine('Log copiado al portapapeles.'));
+      } else {
+        const ok = document.execCommand('copy');
+        if (ok) logLine('Log copiado al portapapeles.');
+      }
+    });
+
+    renderControls(effectSelect.value);
+    logLine('Wolf FX Studio IA iniciado. Esperando archivo...');
+    updateView();
+  </script>
+</body>
+</html>
