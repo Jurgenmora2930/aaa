@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vectorizer Demo</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>Raster → SVG con vectorizer</h1>
+      <p class="subtitle">Sube una imagen PNG/JPG y conviértela a vectorial.</p>
+
+      <form id="vectorForm" class="card">
+        <label>
+          Imagen
+          <input type="file" name="image" accept="image/png,image/jpeg,image/webp" required />
+        </label>
+
+        <div class="grid">
+          <label>
+            Threshold
+            <input type="number" name="threshold" min="0" max="255" value="120" />
+          </label>
+          <label>
+            Despeckle
+            <input type="number" name="despeckle" min="0" max="10" value="1" />
+          </label>
+          <label>
+            Simplify
+            <input type="number" name="simplify" min="0" max="10" value="1" />
+          </label>
+        </div>
+
+        <button type="submit">Vectorizar</button>
+      </form>
+
+      <section id="status" class="status" aria-live="polite"></section>
+
+      <section id="result" class="result hidden">
+        <h2>Resultado SVG</h2>
+        <div class="actions">
+          <button id="downloadBtn" type="button">Descargar SVG</button>
+        </div>
+        <div id="preview" class="preview"></div>
+        <textarea id="svgOutput" rows="12" readonly></textarea>
+      </section>
+    </main>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
